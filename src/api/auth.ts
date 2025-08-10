@@ -16,20 +16,28 @@ export interface AdminLoginRequest {
   password: string;
 }
 
+export interface StudentAuthResponse extends Student {
+  token: string;
+}
+
+export interface AdminAuthResponse extends AdminUser {
+  token: string;
+}
+
 export const authAPI = {
   // Student auth
-  register: async (data: RegisterRequest): Promise<Student> => {
+  register: async (data: RegisterRequest): Promise<StudentAuthResponse> => {
     const response = await apiClient.post('/auth/register', data);
     return response.data;
   },
 
-  loginStudent: async (data: LoginRequest): Promise<Student> => {
+  loginStudent: async (data: LoginRequest): Promise<StudentAuthResponse> => {
     const response = await apiClient.post('/auth/login', data);
     return response.data;
   },
 
   // Admin auth
-  loginAdmin: async (data: AdminLoginRequest): Promise<AdminUser> => {
+  loginAdmin: async (data: AdminLoginRequest): Promise<AdminAuthResponse> => {
     const response = await apiClient.post('/auth/admin/login', data);
     return response.data;
   },

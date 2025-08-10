@@ -57,6 +57,7 @@ export interface ExamResult {
 export interface AuthState {
   user: Student | AdminUser | null;
   role: 'student' | 'admin' | null;
+  token: string | null;
   isAuthenticated: boolean;
 }
 

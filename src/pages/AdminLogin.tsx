@@ -44,7 +44,7 @@ export default function AdminLogin() {
   const loginMutation = useMutation({
     mutationFn: authAPI.loginAdmin,
     onSuccess: (data) => {
-      setUser(data, 'admin');
+      setUser(data, 'admin', data.token);
       navigate('/admin/dashboard');
     },
     onError: (error: any) => {

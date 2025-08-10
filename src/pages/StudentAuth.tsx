@@ -64,7 +64,7 @@ export default function StudentAuth() {
   const registerMutation = useMutation({
     mutationFn: authAPI.register,
     onSuccess: (data) => {
-      setUser(data, 'student');
+      setUser(data, 'student', data.token);
       navigate('/exam');
     },
     onError: (error: any) => {
@@ -75,7 +75,7 @@ export default function StudentAuth() {
   const loginMutation = useMutation({
     mutationFn: authAPI.loginStudent,
     onSuccess: (data) => {
-      setUser(data, 'student');
+      setUser(data, 'student', data.token);
       navigate('/exam');
     },
     onError: (error: any) => {

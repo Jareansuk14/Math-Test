@@ -3,7 +3,8 @@ import { persist } from 'zustand/middleware';
 import type { AuthState, Student, AdminUser } from '../types';
 
 interface AuthStore extends AuthState {
-  setUser: (user: Student | AdminUser, role: 'student' | 'admin') => void;
+  token: string | null;
+  setUser: (user: Student | AdminUser, role: 'student' | 'admin', token: string) => void;
   clearAuth: () => void;
   clearAllCache: () => void;
 }
@@ -13,11 +14,13 @@ export const useAuthStore = create<AuthStore>()(
     (set, get) => ({
       user: null,
       role: null,
+      token: null,
       isAuthenticated: false,
       
-      setUser: (user, role) => set({
+      setUser: (user, role, token) => set({
         user,
         role,
+        token,
         isAuthenticated: true,
       }),
       
@@ -25,6 +28,7 @@ export const useAuthStore = create<AuthStore>()(
         set({
         user: null,
         role: null,
+        token: null,
         isAuthenticated: false,
         });
         
@@ -64,6 +68,7 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         role: state.role,
+        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
     }
