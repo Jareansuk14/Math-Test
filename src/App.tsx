@@ -44,14 +44,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const { clearAuth: originalClearAuth } = useAuthStore();
 
   useEffect(() => {
-    // Override clearAuth to include query client clearing
-    const enhancedClearAuth = () => {
-      // Clear React Query cache
-      queryClient.clear();
-      // Call original clearAuth
-      originalClearAuth();
-    };
-
     // Store the enhanced clear function globally for access from auth store
     (window as any).clearQueryCache = () => queryClient.clear();
   }, [originalClearAuth]);

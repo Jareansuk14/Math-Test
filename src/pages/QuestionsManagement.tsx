@@ -555,7 +555,7 @@ export default function QuestionsManagement() {
                 onChange={(e) => setFormData(prev => ({ ...prev, correctIndex: Number(e.target.value) }))}
                 label="คำตอบที่ถูกต้อง"
               >
-                {formData.choices.map((choice, index) => (
+                {formData.choices.map((_, index) => (
                   <MenuItem key={index} value={index}>
                     ข้อ {index + 1}
                   </MenuItem>
