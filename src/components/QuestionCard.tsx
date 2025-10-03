@@ -82,7 +82,7 @@ export default function QuestionCard({
               textAlign: { xs: 'center', sm: 'right' }
             }}
           >
-            ข้อสอบแบบฝึกหัดคณิตศาสตร์
+            แบบฝึกหัดคณิตศาสตร์ เรื่อง อัตราส่วนตรีโกณมิติ
           </Typography>
         </Box>
 

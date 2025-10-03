@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, Box, Typography, CircularProgress, Alert, useMediaQuery, useTheme } from '@mui/material';
+import { Container, Box, Typography, CircularProgress, Alert, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { examAPI } from '../api/exam';
@@ -38,6 +38,7 @@ export default function ExamPage() {
   } | null>(null);
   const [isFirstTryCorrect, setIsFirstTryCorrect] = useState(false);
   const [error, setError] = useState('');
+  const [showInstructions, setShowInstructions] = useState(true);
 
   // Redirect if not authenticated as student
   useEffect(() => {
@@ -63,6 +64,7 @@ export default function ExamPage() {
     mutationFn: examAPI.startExam,
     onSuccess: (data) => {
       setSession(data);
+      setShowInstructions(false);
     },
     onError: (error: any) => {
       setError(error.response?.data?.message || 'ไม่สามารถเริ่มการสอบได้');
@@ -120,13 +122,72 @@ export default function ExamPage() {
     },
   });
 
-  // Initialize exam
+  // Hide instructions if session already exists (e.g., page refresh mid-exam)
   useEffect(() => {
-    if (questionsData && !currentSession) {
-      setQuestions(questionsData.items);
-      startExamMutation.mutate();
+    if (currentSession) {
+      setShowInstructions(false);
     }
-  }, [questionsData, currentSession]);
+  }, [currentSession]);
+
+  const handleAcceptInstructions = () => {
+    if (!questionsData || currentSession) return;
+    setQuestions(questionsData.items);
+    startExamMutation.mutate();
+  };
+  // Show instructions before starting the exam
+  if (showInstructions) {
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+        <HeaderBar />
+        <Container sx={{ mt: { xs: 2, sm: 4 }, px: { xs: 2, sm: 3 } }}>
+          <Dialog 
+            open 
+            fullWidth 
+            maxWidth="md"
+            fullScreen={isMobile}
+            scroll="paper"
+            PaperProps={{ sx: { m: { xs: 0, sm: 2 }, borderRadius: { xs: 0, sm: 2 } } }}
+          >
+            <DialogTitle 
+              sx={{ 
+                fontWeight: 700,
+                fontSize: { xs: '1.125rem', sm: '1.25rem' },
+                lineHeight: 1.3
+              }}
+            >
+              แบบทดสอบเรื่องอัตราส่วนตรีโกณมิติ
+            </DialogTitle>
+            <DialogContent>
+              <Typography sx={{ mb: { xs: 1, sm: 1.5 }, fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                เป็นแบบทดสอบแบบเลือกตอบชนิด 4 ตัวเลือก จำนวน 20 ข้อ กำหนดเวลาในการทำ 1 ชั่วโมง
+              </Typography>
+              <Typography sx={{ fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                ผู้เข้าสอบจะต้องเริ่มทำตั้งแต่ข้อที่ 1 และตอบให้ถูกต้องจึงจะสามารถไปยังข้อถัดไปได้ หากตอบผิด ระบบจะแสดงข้อความอธิบายเพิ่มเติม เพื่อเป็นแนวทางในการหาคำตอบที่ถูกต้องต่อไป
+              </Typography>
+            </DialogContent>
+            <DialogActions sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 2 } }}>
+              <Button
+                variant="contained"
+                onClick={handleAcceptInstructions}
+                disabled={!questionsData || startExamMutation.isPending}
+                fullWidth={isMobile}
+                size={isMobile ? 'large' : 'medium'}
+                sx={{ py: { xs: 1.25, sm: 1 } }}
+              >
+                {(!questionsData || startExamMutation.isPending) ? (
+                  <>
+                    <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} /> กำลังเตรียมข้อสอบ...
+                  </>
+                ) : (
+                  'ตกลง'
+                )}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Container>
+      </Box>
+    );
+  }
 
   const handleSubmitAnswer = (choiceIndex: number) => {
     if (!currentSession || !questions[currentQuestionIndex]) return;

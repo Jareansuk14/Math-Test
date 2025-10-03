@@ -40,7 +40,11 @@ export interface ExamResult {
   studentId: string;
   setVersion: number;
   perQuestion: {
-    questionId: string;
+    questionId: string | {
+      _id: string;
+      index: number;
+      choices: { text: string }[];
+    };
     firstAttemptCorrect: boolean;
     wrongAttemptsCount: number;
     attempts: {

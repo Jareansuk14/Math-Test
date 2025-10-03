@@ -90,6 +90,10 @@ export default function StudentAuth() {
       setError('กรุณากรอกข้อมูลให้ครบถ้วน');
       return;
     }
+    if (registerForm.studentId.length !== 13) {
+      setError('เลขประจําตัวประชาชนต้องมี 13 หลัก');
+      return;
+    }
     registerMutation.mutate(registerForm);
   };
 
@@ -97,7 +101,11 @@ export default function StudentAuth() {
     e.preventDefault();
     setError('');
     if (!loginForm.studentId) {
-      setError('กรุณากรอกรหัสนักเรียน');
+      setError('กรุณากรอกเลขประจําตัวประชาชน');
+      return;
+    }
+    if (loginForm.studentId.length !== 13) {
+      setError('เลขประจําตัวประชาชนต้องมี 13 หลัก');
       return;
     }
     loginMutation.mutate(loginForm);
@@ -146,13 +154,13 @@ export default function StudentAuth() {
           align="center" 
           gutterBottom
           sx={{
-            fontSize: { xs: '1.5rem', sm: '2rem' },
+            fontSize: { xs: '1rem', sm: '1.5rem' },
             fontWeight: 600,
             mb: { xs: 2, sm: 3 },
             lineHeight: 1.2
           }}
         >
-          แบบฝึกหัดคณิตศาสตร์
+          ยินดีต้อนรับเข้าสู่การประเมินเชิงพลวัต เรื่อง อัตราส่วนตรีโกณมิติ ระดับชั้นมัธยมศึกษาปีที่ 3
         </Typography>
         
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: { xs: 1, sm: 0 } }}>
@@ -200,14 +208,23 @@ export default function StudentAuth() {
           >
             <TextField
               fullWidth
-              label="รหัสนักเรียน"
+              label="เลขประจําตัวประชาชน"
               value={loginForm.studentId}
-              onChange={(e) => setLoginForm({ studentId: e.target.value })}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ''); // รับเฉพาะตัวเลข
+                if (value.length <= 13) {
+                  setLoginForm({ studentId: value });
+                }
+              }}
               required
               disabled={isLoading}
               variant="outlined"
               autoComplete="username"
               autoFocus={!isMobile}
+              inputProps={{
+                maxLength: 13,
+                pattern: '[0-9]{13}'
+              }}
               InputProps={{
                 sx: {
                   fontSize: { xs: '1rem', sm: '1.1rem' },
@@ -262,13 +279,22 @@ export default function StudentAuth() {
           >
             <TextField
               fullWidth
-              label="รหัสนักเรียน"
+              label="เลขประจําตัวประชาชน"
               value={registerForm.studentId}
-              onChange={(e) => setRegisterForm({ ...registerForm, studentId: e.target.value })}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, ''); // รับเฉพาะตัวเลข
+                if (value.length <= 13) {
+                  setRegisterForm({ ...registerForm, studentId: value });
+                }
+              }}
               required
               disabled={isLoading}
               autoComplete="username"
               autoFocus={!isMobile}
+              inputProps={{
+                maxLength: 13,
+                pattern: '[0-9]{13}'
+              }}
               InputProps={{
                 sx: {
                   fontSize: { xs: '1rem', sm: '1.1rem' },

@@ -61,7 +61,7 @@ interface EnhancedStudent extends Student {
 }
 
 interface EnhancedExamResult extends ExamResult {
-  timeTaken: number;
+  timeTaken: string;
 }
 
 // Slide transition for full screen dialogs
@@ -192,7 +192,7 @@ function ExamHistoryCard({
               เวลาที่ใช้
             </Typography>
             <Typography variant="body2" fontWeight={500}>
-              {result.timeTaken} นาที
+              {result.timeTaken}
             </Typography>
           </Box>
         </Box>
@@ -220,6 +220,9 @@ function QuestionResultCard({
   question: any; 
   index: number;
 }) {
+  const choiceLabels = ['A', 'B', 'C', 'D'];
+  const wrongAttempts = question.attempts?.filter((a: any) => !a.isCorrect) || [];
+  
   return (
     <Card sx={{ mb: 1.5, borderRadius: 2 }}>
       <CardContent sx={{ p: 2 }}>
@@ -234,7 +237,7 @@ function QuestionResultCard({
           )}
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
           <Box sx={{ flex: 1 }}>
             <Typography variant="caption" color="text.secondary" display="block">
               จำนวนครั้งที่ผิด
@@ -255,6 +258,19 @@ function QuestionResultCard({
             </Typography>
           </Box>
         </Box>
+
+        {wrongAttempts.length > 0 && (
+          <Box sx={{ mt: 1.5, pt: 1.5, borderTop: 1, borderColor: 'divider' }}>
+            <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
+              รายละเอียดการตอบผิด:
+            </Typography>
+            {wrongAttempts.map((attempt: any, attemptIdx: number) => (
+              <Typography key={attemptIdx} variant="body2" sx={{ fontSize: '0.875rem', mb: 0.25 }}>
+                • ผิดครั้งที่ {attemptIdx + 1}: เลือกข้อ {choiceLabels[attempt.choiceIndex]}
+              </Typography>
+            ))}
+          </Box>
+        )}
       </CardContent>
     </Card>
   );
@@ -300,10 +316,15 @@ export default function StudentsManagement() {
     select: (data) => {
       if (!selectedStudentId) return [];
       return data.filter((result: ExamResult) => result.studentId === selectedStudentId)
-        .map((result: ExamResult) => ({
-          ...result,
-          timeTaken: Math.round((new Date(result.completedAt).getTime() - new Date(result.startedAt).getTime()) / (1000 * 60))
-        }))
+        .map((result: ExamResult) => {
+          const timeDiff = new Date(result.completedAt).getTime() - new Date(result.startedAt).getTime();
+          const minutes = Math.floor(timeDiff / (1000 * 60));
+          const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+          return {
+            ...result,
+            timeTaken: `${minutes} นาที ${seconds} วินาที`
+          };
+        })
         .sort((a: EnhancedExamResult, b: EnhancedExamResult) => 
           new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
         );
@@ -776,7 +797,7 @@ export default function StudentsManagement() {
                                     />
                                   </TableCell>
                                   <TableCell align="center">
-                                    {result.timeTaken} นาที
+                                    {result.timeTaken}
                                   </TableCell>
                                   <TableCell align="center">
                                     {result.perQuestion.length} ข้อ
@@ -866,7 +887,7 @@ export default function StudentsManagement() {
                                 เวลาที่ใช้
                               </Typography>
                               <Typography variant="body2" fontWeight={500}>
-                                {selectedExamResult.timeTaken} นาที
+                                {selectedExamResult.timeTaken}
                               </Typography>
                             </Box>
                             <Box sx={{ minWidth: '80px' }}>
@@ -930,7 +951,7 @@ export default function StudentsManagement() {
                         <strong>วันที่สอบ:</strong> {formatDate(selectedExamResult.completedAt)}
                       </Typography>
                       <Typography variant="body1" gutterBottom>
-                        <strong>เวลาที่ใช้:</strong> {selectedExamResult.timeTaken} นาที
+                        <strong>เวลาที่ใช้:</strong> {selectedExamResult.timeTaken}
                       </Typography>
                       <Typography variant="body1" gutterBottom>
                         <strong>คะแนนที่ได้:</strong> {selectedExamResult.realScore} คะแนน
@@ -951,38 +972,59 @@ export default function StudentsManagement() {
                               <TableCell align="center">ถูกครั้งแรก</TableCell>
                               <TableCell align="center">จำนวนครั้งที่ผิด</TableCell>
                               <TableCell align="center">ความพยายามทั้งหมด</TableCell>
+                              <TableCell>รายละเอียดการตอบผิด</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {selectedExamResult.perQuestion.map((question: any, index: number) => (
-                              <TableRow key={question.questionId || index} hover>
-                                <TableCell>
-                                  <Typography variant="body2" fontWeight="medium">
-                                    ข้อ {index + 1}
-                                  </Typography>
-                                </TableCell>
-                                <TableCell align="center">
-                                  {question.firstAttemptCorrect ? (
-                                    <CheckCircle color="success" />
-                                  ) : (
-                                    <Cancel color="error" />
-                                  )}
-                                </TableCell>
-                                <TableCell align="center">
-                                  <Chip
-                                    label={question.wrongAttemptsCount || 0}
-                                    size="small"
-                                    color={(question.wrongAttemptsCount || 0) === 0 ? 'success' : 
-                                           (question.wrongAttemptsCount || 0) <= 2 ? 'warning' : 'error'}
-                                  />
-                                </TableCell>
-                                <TableCell align="center">
-                                  <Typography variant="body2">
-                                    {question.attempts?.length || 0} ครั้ง
-                                  </Typography>
-                                </TableCell>
-                              </TableRow>
-                            ))}
+                            {selectedExamResult.perQuestion.map((question: any, index: number) => {
+                              const choiceLabels = ['A', 'B', 'C', 'D'];
+                              const wrongAttempts = question.attempts?.filter((a: any) => !a.isCorrect) || [];
+                              
+                              return (
+                                <TableRow key={question.questionId || index} hover>
+                                  <TableCell>
+                                    <Typography variant="body2" fontWeight="medium">
+                                      ข้อ {index + 1}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {question.firstAttemptCorrect ? (
+                                      <CheckCircle color="success" />
+                                    ) : (
+                                      <Cancel color="error" />
+                                    )}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Chip
+                                      label={question.wrongAttemptsCount || 0}
+                                      size="small"
+                                      color={(question.wrongAttemptsCount || 0) === 0 ? 'success' : 
+                                             (question.wrongAttemptsCount || 0) <= 2 ? 'warning' : 'error'}
+                                    />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Typography variant="body2">
+                                      {question.attempts?.length || 0} ครั้ง
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    {wrongAttempts.length > 0 ? (
+                                      <Box>
+                                        {wrongAttempts.map((attempt: any, attemptIdx: number) => (
+                                          <Typography key={attemptIdx} variant="body2" sx={{ fontSize: '0.875rem' }}>
+                                            ผิดครั้งที่ {attemptIdx + 1}: เลือกข้อ {choiceLabels[attempt.choiceIndex]}
+                                          </Typography>
+                                        ))}
+                                      </Box>
+                                    ) : (
+                                      <Typography variant="body2" color="text.secondary">
+                                        -
+                                      </Typography>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
                           </TableBody>
                         </Table>
                       </TableContainer>
